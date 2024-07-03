@@ -33,15 +33,17 @@ def sample_trajectory(env, policy, max_path_length, render=False):
             image_obs.append(cv2.resize(img, dsize=(250, 250), interpolation=cv2.INTER_CUBIC))
     
         # TODO use the most recent ob to decide what to do
-        ac = TODO # HINT: this is a numpy array
-        ac = ac[0]
+        ob = ptu.from_numpy(ob)
+        ac = policy(ob) # HINT: this is a numpy array
+        # ac = ac[0]
 
         # TODO: take that action and get reward and next ob
-        next_ob, rew, done, _ = TODO
+        ac = ac.detach().cpu().numpy()
+        next_ob, rew, done, _ = env.step(ac)
         
         # TODO rollout can end due to done, or due to max_path_length
         steps += 1
-        rollout_done = TODO # HINT: this is either 0 or 1
+        rollout_done = 1 if done or steps >= max_path_length else 0 # HINT: this is either 0 or 1
         
         # record result of taking that action
         obs.append(ob)
@@ -55,13 +57,20 @@ def sample_trajectory(env, policy, max_path_length, render=False):
         # end the rollout if the rollout ended
         if rollout_done:
             break
+    
+    return {"observation" : np.array([o.numpy() for o in obs], dtype=np.float32),
+            "image_obs" : np.array([io for io in image_obs], dtype=np.uint8),
+            "reward" : np.array([rew for rew in rewards], dtype=np.float32),
+            "action" : np.array([ac for ac in acs], dtype=np.float32),
+            "next_observation": np.array([no for no in next_obs], dtype=np.float32),
+            "terminal": np.array([terminal for terminal in terminals], dtype=np.float32)}
 
-    return {"observation" : np.array(obs, dtype=np.float32),
-            "image_obs" : np.array(image_obs, dtype=np.uint8),
-            "reward" : np.array(rewards, dtype=np.float32),
-            "action" : np.array(acs, dtype=np.float32),
-            "next_observation": np.array(next_obs, dtype=np.float32),
-            "terminal": np.array(terminals, dtype=np.float32)}
+    # return {"observation" : np.array(obs, dtype=np.float32),
+    #         "image_obs" : np.array(image_obs, dtype=np.uint8),
+    #         "reward" : np.array(rewards, dtype=np.float32),
+    #         "action" : np.array(acs, dtype=np.float32),
+    #         "next_observation": np.array(next_obs, dtype=np.float32),
+    #         "terminal": np.array(terminals, dtype=np.float32)}
 
 
 def sample_trajectories(env, policy, min_timesteps_per_batch, max_path_length, render=False):

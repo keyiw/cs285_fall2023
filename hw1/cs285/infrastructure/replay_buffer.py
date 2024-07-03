@@ -13,7 +13,7 @@ class ReplayBuffer(object):
         # store (concatenated) component arrays from each rollout
         self.obs = None
         self.acs = None
-        self.rews = None
+        self.rews = None # rewards
         self.next_obs = None
         self.terminals = None
 
@@ -35,7 +35,7 @@ class ReplayBuffer(object):
             convert_listofrollouts(paths, concat_rew))
 
         if self.obs is None:
-            self.obs = observations[-self.max_size:]
+            self.obs = observations[-self.max_size:] # last max_size elements
             self.acs = actions[-self.max_size:]
             self.rews = rewards[-self.max_size:]
             self.next_obs = next_observations[-self.max_size:]
